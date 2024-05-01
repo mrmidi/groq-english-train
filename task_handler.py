@@ -171,7 +171,7 @@ class VerbTenseTaskHandler(TaskHandler):
                     },
                     {
                         "role": "user",
-                        "content": "Please create 5 tasks for forms of present perfect, past, or past perfect tenses. ONLY FOR THIS TENSES PLEASE!!!!!"
+                        "content": "Please create 10 tasks for forms of present perfect, past, or past perfect tenses. ONLY FOR THIS TENSES PLEASE!!!!!"
                     }
                 ]
                 print("Messages:", messages)
@@ -179,10 +179,9 @@ class VerbTenseTaskHandler(TaskHandler):
                 # serialize the tasks
                 tasks = []
                 data = json.loads(tasks_text)
-                # for task_data in tasks_text['tasks']:
-                #     print("Current task data:", task_data)
-                #     validated_task = DirectToIndirectSpeechTask(**task_data)
-                #     tasks.append(validated_task)
+                # check if data is VerbTenseTask object
+                if isinstance(data, VerbTenseTask):
+                    return [data]
                 print("Parsed JSON:", data)
                 for task_data in data['tasks']:
                     print("Current task data:", task_data)
@@ -192,7 +191,6 @@ class VerbTenseTaskHandler(TaskHandler):
                 print(tasks)
                 return tasks
             except (json.JSONDecodeError, Exception) as e:
-                # TODO Add another handling method if this one has failed
                 print(f"Error: {e}")
                 retries_left -= 1
         return {"error": "Error after 5 retries"}

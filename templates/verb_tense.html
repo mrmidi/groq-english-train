@@ -36,7 +36,14 @@
 
 
     <!--print jinja variables: -->
-    <p>{{ tasks }}</p>
+    <div class="container mx-auto px-4">
+    <h1 class="text-xl font-bold text-gray-800 mt-6 mb-4">Answers:</h1>
+    {% for task in tasks %}
+        {% for blank in task.blanks %}
+            <p class="text-gray-600">{{ blank }}</p>
+        {% endfor %}
+    {% endfor %}
+    </div>
 
     <script>
 
@@ -45,8 +52,16 @@
             // delete all ' from the strings
             console.log('User answer:', userAnswer);
             console.log('Correct answer:', correctAnswer);
-            userAnswer = userAnswer.replace("&#39;", "");
-            correctAnswer = correctAnswer.replace("&#39;", "");
+            userAnswer = userAnswer.replace(/&#39;/g, "");
+            correctAnswer = correctAnswer.replace(/&#39;/g, "");
+            console.log('User answer:', userAnswer);
+            console.log('Correct answer:', correctAnswer);
+            // expant hadn't to had not
+            userAnswer = userAnswer.replace("hadnt", "had not");
+            correctAnswer = correctAnswer.replace("hadnt", "had not");
+            // expand haven't to have not
+            userAnswer = userAnswer.replace("havent", "have not");
+            correctAnswer = correctAnswer.replace("havent", "have not");
             // expand didn't to did not
             userAnswer = userAnswer.replace("didnt", "did not");
             correctAnswer = correctAnswer.replace("didnt", "did not");
