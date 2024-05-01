@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>English Learning App</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://kit.fontawesome.com/65414f01d0.js" crossorigin="anonymous"></script>
+    <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+</head>
+<body class="bg-gray-100">
+<div class="container mx-auto px-4">
+    <h1 class="text-xl font-bold text-gray-800 mt-6 mb-4">Fill in correct forms of present perfect, past, or past perfect tenses.</h1>
+    <div id="tasks">
+        {% for task in tasks %}
+        <div class="bg-white shadow rounded-lg p-4 mb-6">
+            <div class="flex items-center mb-2">
+                <i id="icon_{{ task.id }}" class="fa-solid fa-question text-lg"></i>
+                <p class="text-gray-600 ml-2"><strong>Sentence:</strong> {{ task.sentence }}</p>
+            </div>
+            {% for blank in task.blanks %}
+            <div class="mt-1">
+                <input type="text" id="answer_{{ task.id }}_{{ loop.index }}" class="block w-full px-3 py-2 bg-gray-50 border border-gray-300 rounded-md" placeholder="Type your answer here">
+                <div class="flex items-center mt-2">
+                    <button onclick="checkAnswer({{ task.id }}, '{{ loop.index }}', '{{ task.blanks[loop.index0].replace("'", "&#39;") }}', document.getElementById('answer_' + {{ task.id }} + '_{{ loop.index }}').value)" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">Check</button>
+                    <button onclick="showHint({{ task.id }}, '{{ loop.index }}', '{{ task.hints[loop.index0].replace("'", "&#39;") }}')" class="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded ml-2">Hint</button>
+                </div>
+                <p id="hint_{{ task.id }}_{{ loop.index }}" class="text-gray-600 hidden mt-2">Hint: {{ task.hints[loop.index0] }}</p>
+            </div>
+            {% endfor %}
+            <p id="explanation_{{ task.id }}" class="text-gray-600 mt-2 hidden"></p>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+
+
+    <!--print jinja variables: -->
+    <p>{{ tasks }}</p>
+
+    <script>
+
+        function checkAnswer(taskId, blankIndex, correctAnswer, userAnswer) {
+            // Normalize both userAnswer and correctAnswer to lower case for case-insensitive comparison
+            // delete all ' from the strings
+            console.log('User answer:', userAnswer);
+            console.log('Correct answer:', correctAnswer);
+            userAnswer = userAnswer.replace("&#39;", "");
+            correctAnswer = correctAnswer.replace("&#39;", "");
+            // expand didn't to did not
+            userAnswer = userAnswer.replace("didnt", "did not");
+            correctAnswer = correctAnswer.replace("didnt", "did not");
+            // expand haven't to have not
+            userAnswer = userAnswer.replace("havent", "have not");
+            correctAnswer = correctAnswer.replace("havent", "have not");
+            // expand hasn't to has not
+            userAnswer = userAnswer.replace("hasnt", "has not");
+            correctAnswer = correctAnswer.replace("hasnt", "has not");
+            // expand isn't to is not
+            userAnswer = userAnswer.replace("isnt", "is not");
+            correctAnswer = correctAnswer.replace("isnt", "is not");
+            // expand aren't to are not
+            userAnswer = userAnswer.replace("arent", "are not");
+            correctAnswer = correctAnswer.replace("arent", "are not");
+            // expand won't to will not
+            userAnswer = userAnswer.replace("wont", "will not");
+            correctAnswer = correctAnswer.replace("wont", "will not");
+            // expand can't to can not
+            userAnswer = userAnswer.replace("cant", "can not");
+            correctAnswer = correctAnswer.replace("cant", "can not");
+            // expand couldn't to could not
+            userAnswer = userAnswer.replace("couldnt", "could not");
+            correctAnswer = correctAnswer.replace("couldnt", "could not");
+            // expand shouldn't to should not
+            userAnswer = userAnswer.replace("shouldnt", "should not");
+            correctAnswer = correctAnswer.replace("shouldnt", "should not");
+            // expand mustn't to must not
+            userAnswer = userAnswer.replace("mustnt", "must not");
+            correctAnswer = correctAnswer.replace("mustnt", "must not");
+            // expand mightn't to might not
+            userAnswer = userAnswer.replace("mightnt", "might not");
+            correctAnswer = correctAnswer.replace("mightnt", "might not");
+
+            if (userAnswer.trim().toLowerCase() === correctAnswer.toLowerCase()) {
+                // User provided the correct answer
+                updateUI(taskId, blankIndex, true, "Correct answer! Great job!");
+            } else {
+                // User provided an incorrect answer
+                updateUI(taskId, blankIndex, false, "Incorrect answer. Try again!");
+            }
+        }
+
+        function updateUI(taskId, blankIndex, isCorrect, message) {
+            // Compose the ID of the explanation element using taskId
+            var explanationElementId = 'explanation_' + taskId;
+
+            // Find the explanation element by its ID
+            var explanationElement = document.getElementById(explanationElementId);
+
+            // Update the text and color based on correctness of the answer
+            explanationElement.innerHTML = message;
+            explanationElement.style.color = isCorrect ? 'green' : 'red';
+
+            // Show the explanation element
+            explanationElement.classList.remove('hidden');
+
+            // Optionally, you might want to change the icon based on the result
+            var iconElementId = 'icon_' + taskId;
+            var iconElement = document.getElementById(iconElementId);
+            iconElement.className = isCorrect ? 'fa-solid fa-check text-lg' : 'fa-solid fa-times text-lg';
+        }
+
+
+
+        function showHint(taskId, blankIndex, hint) {
+            // Compose the hint element ID using taskId and blankIndex
+            var hintElementId = 'hint_' + taskId + '_' + blankIndex;
+
+            // Find the hint element by its ID
+            var hintElement = document.getElementById(hintElementId);
+
+            // Set the hint text
+            hintElement.innerHTML = "Hint: " + hint;
+
+            // Toggle visibility to show or hide the hint
+            hintElement.classList.toggle('hidden');
+        }
+
+
+    </script>
+</body>
+</html>

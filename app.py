@@ -2,6 +2,10 @@ from flask import Flask, request, jsonify, render_template
 from task_factory import TaskFactory
 import markdown
 from bs4 import BeautifulSoup
+from jinja2 import Environment
+
+env = Environment()
+env.globals['zip'] = zip
 
 app = Flask(__name__)
 
@@ -64,6 +68,20 @@ def fetch_task(task_type):
         return jsonify(task), 200
     except ValueError as e:
         return jsonify({"error": str(e)}), 404
+
+# verb tense task routes
+@app.route('/verb_tense', methods=['GET'])
+def verb_tense():
+    task_handler = TaskFactory.get_task_handler('verb_tense')
+    tasks = task_handler.fetch_task()
+    # if it's only one task - convert to list
+    if not isinstance(tasks, list):
+        tasks = [tasks]
+
+    print(f"Verb tense task: {tasks}")
+    if not tasks:
+        return "No task available", 404
+    return render_template('verb_tense.html', tasks=tasks)
 
 if __name__ == "__main__":
     app.run(debug=True)

@@ -1,11 +1,11 @@
-from task_handler import DirectToIndirectSpeechTaskHandler
+from task_handler import DirectToIndirectSpeechTaskHandler, VerbTenseTaskHandler
 class TaskFactory:
     @staticmethod
     def get_task_handler(task_type):
         # Mapping of task type names to their corresponding handler classes
         task_mapping = {
             'direct_to_indirect_speech': DirectToIndirectSpeechTaskHandler,
-            # Additional task types can be added here as new classes are implemented
+            'verb_tense': VerbTenseTaskHandler,
         }
 
         if task_type in task_mapping:

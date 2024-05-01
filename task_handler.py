@@ -1,8 +1,8 @@
-from models import DirectToIndirectSpeechTask, DirectToInderectSpeechCheck
+from models import DirectToIndirectSpeechTask, DirectToInderectSpeechCheck, VerbTenseTask, VerbTenseCheck
 from typing import List
 from pydantic import BaseModel
 import json
-from llm_interaction import llm_get_tasks, llm_explain_task, llm_check_answer
+from llm_interaction import llm_get_tasks, llm_explain_task, llm_check_answer, llm_fetch_tasks
 
 class TaskHandler:
     def fetch_task(self):
@@ -111,3 +111,98 @@ class DirectToIndirectSpeechTaskHandler(TaskHandler):
         # Validate the answer for the current task
         correct_answer = self.tasks[self.current_task_index - 1].correct_answer  # -1 because index has been incremented after fetch
         return self.validate_answer(answer, correct_answer)
+
+
+class VerbTenseTaskHandler(TaskHandler):
+    def __init__(self):
+        super().__init__()
+        self.tasks = [
+            VerbTenseTask(
+                id=1,
+                sentence="They are buying a new printer because the old one ________ (break) down.",
+                blanks=["has broken"],
+                hints=["Use the present perfect form."]
+            ),
+            VerbTenseTask(
+                id=2,
+                sentence="She ________ (study) for her exams since last week.",
+                blanks=["has been studying"],
+                hints=["Use the present perfect continuous form."]
+            ),
+            VerbTenseTask(
+                id=3,
+                sentence="When I ________ (join) the company in 1999, they ________ (market) three  three versions of the model by then.",
+                blanks=["joined", "had been marketing"],
+                hints=["Use the simple past tense because the action (joining) happened at a specific time in the past.", "Use the past perfect continuous tense to describe an action that had been ongoing until a certain point in the past."]
+            )
+        ]
+
+    def fetch_task(self):
+        print("Fetching tasks")
+        retries_left = 1
+        while retries_left > 0:
+            try:
+        # Logic to fetch and return tasks
+                messages = [
+                    {
+                        "role": "system",
+                        "content": f"You are an English teacher that creates tasks and outputs them in JSON.\n"
+                                   "You will create exercises for students to practice verb tenses.\n"
+                                   "You will create ONLY verb tenses that student has asked for.\n"
+                                   f"Example of a tasks that should be created:\n"
+                                   f"They are buying a new printer because the old one ________ (break) down.\n"
+                                   f"She ________ (study) for her exams since last week.\n"
+                                   f"When I ________ (join) the company in 1999, they ________ (market) three  three versions of the model by then.\n"
+                                   f"Can you see the square? It ________ (change).\n"
+                                   f"They (demolish) the old office block and ________ (build) a fountain.\n"
+                                   f"But the same trees (grow) at the lower end since we were children.\n"
+                                   f"Thomas thought that Mark (tell) me about the email.\n"
+                                   f"Great example of hints: Use the simple past tense because the action (joining) happened at a specific time in the past.\n"
+                                   "Use the past perfect continuous tense to describe an action that had been ongoing until a certain point in the past.\n"
+                                   "If answers contains already, just or similar word - ADD IT TO HINTS!\n"
+                                   "Every blank should have a hint.\n"
+                                   "Answer SHOULD be stored in the BLANKS field.\n"
+                                   "There CAN be MULTIPLE blank in one sentence!\n"
+                                   "DO NOT SHORTEN CORRECT ANSWERS: \"I have been studying\" is correct, \"I've been studying\" is not.\n"
+                                   f"You will create similar tasks and provide correct answers for each blank.\n"
+                                   "You output will be only JSON object starting with { and ending with }.\n"
+                                   f"No other content should be present in the output.\n"
+                                   f"The JSON object must use the schema: {self.jsonschema}",
+                    },
+                    {
+                        "role": "user",
+                        "content": "Please create 5 tasks for forms of present perfect, past, or past perfect tenses. ONLY FOR THIS TENSES PLEASE!!!!!"
+                    }
+                ]
+                print("Messages:", messages)
+                tasks_text = llm_fetch_tasks(messages)
+                # serialize the tasks
+                tasks = []
+                data = json.loads(tasks_text)
+                # for task_data in tasks_text['tasks']:
+                #     print("Current task data:", task_data)
+                #     validated_task = DirectToIndirectSpeechTask(**task_data)
+                #     tasks.append(validated_task)
+                print("Parsed JSON:", data)
+                for task_data in data['tasks']:
+                    print("Current task data:", task_data)
+                    validated_task = VerbTenseTask(**task_data)
+                    tasks.append(validated_task)
+                print(self.tasks)
+                print(tasks)
+                return tasks
+            except (json.JSONDecodeError, Exception) as e:
+                print(f"Error: {e}")
+                retries_left -= 1
+        return {"error": "Error after 5 retries"}
+
+    def submit_task(self, answer):
+        # Logic to check the answers
+        pass
+
+    def validate_answer(self, user_answer, correct_answer):
+        return [ans.strip() == cor_ans.strip() for ans, cor_ans in zip(user_answer, correct_answer)]
+
+    @property
+    def jsonschema(self):
+        return json.dumps(VerbTenseTask.schema(), indent=2)

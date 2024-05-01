@@ -70,4 +70,17 @@ def llm_get_tasks(messages: List[Dict[str, Any]]) -> List[DirectToIndirectSpeech
             retries_left -= 1
     return {"error": "Error after 5 retries"}
 
+def llm_fetch_tasks(messages: List[Dict[str, Any]]):
+    messages = messages
+    print("API Key:", GROQ_API_KEY)
+    print("Messages:", messages)
+    chat_completion = groq.chat.completions.create(
+        messages=messages,
+        model="llama3-70b-8192",
+        temperature=1.2,
+        stream=False,
+    )
+    print("Chat completion:", chat_completion.choices[0].message.content)
+    return chat_completion.choices[0].message.content
+
 
