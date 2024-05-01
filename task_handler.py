@@ -139,7 +139,7 @@ class VerbTenseTaskHandler(TaskHandler):
 
     def fetch_task(self):
         print("Fetching tasks")
-        retries_left = 1
+        retries_left = 5
         while retries_left > 0:
             try:
         # Logic to fetch and return tasks
@@ -192,6 +192,7 @@ class VerbTenseTaskHandler(TaskHandler):
                 print(tasks)
                 return tasks
             except (json.JSONDecodeError, Exception) as e:
+                # TODO Add another handling method if this one has failed
                 print(f"Error: {e}")
                 retries_left -= 1
         return {"error": "Error after 5 retries"}
