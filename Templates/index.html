@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>English Learning App</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://kit.fontawesome.com/65414f01d0.js" crossorigin="anonymous"></script>
+    <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+</head>
+<body class="bg-gray-100">
+    <div class="container mx-auto px-4">
+        <h1 class="text-xl font-bold text-gray-800 mt-6 mb-4">Change Direct to Indirect Speech</h1>
+        <div id="tasks">
+            {% for task in tasks %}
+            <div class="bg-white shadow rounded-lg p-4 mb-6">
+                <div class="flex items-center mb-2">
+                    <i id="icon_{{ task.id }}" class="fa-solid fa-question text-lg"></i>
+                    <p class="text-gray-600 ml-2"><strong>Sentence {{ loop.index }}:</strong> {{ task.task }}</p>
+                </div>
+                <input type="text" id="answer_{{ task.id }}" class="mt-1 block w-full px-3 py-2 bg-gray-50 border border-gray-300 rounded-md" placeholder="Type your answer here">
+                <div class="mt-2 flex items-center">
+                   <button onclick="checkAnswer({{ task.id }}, '{{ task.correct_answer.replace("'", "&#39;") }}', '{{ task.task.replace("'", "&#39;") }}', document.getElementById('answer_' + {{ task.id }}).value)" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">Check</button>
+                    <button onclick="showHint({{ task.id }}, '{{ task.correct_answer.replace("'", "&#39;") }}', '{{ task.task.replace("'", "&#39;") }}')" class="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded ml-2">Hint</button>
+                    <button onclick="explainAnswer({{ task.id }}, '{{ task.task.replace("'", "&#39;") }}')" class="bg-yellow-500 hover:bg-yellow-700 text-white font-bold py-2 px-4 rounded ml-2">Explain</button>
+                </div>
+                <p id="hint_{{ task.id }}" class="text-gray-600 hidden mt-2">Hint: {{ task.correct_answer }}</p>
+                <p id="explanation_{{ task.id }}" class="text-gray-600 mt-2 hidden"></p>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    <script>
+
+        function checkAnswer(taskId, correctAnswer, questionText) {
+            var userAnswer = document.getElementById('answer_' + taskId).value;
+            console.log('User answer:', userAnswer);
+            console.log('Correct answer:', correctAnswer);
+            console.log('Question text:', questionText);
+            // create post request to send user answer to server
+
+            axios.post('/check/direct_to_indirect_speech', {
+                id: taskId,
+                task: questionText,
+                answer: userAnswer
+            })
+                .then(function (response) {
+                    console.log('Response:', response.data);
+                    var icon = document.getElementById('icon_' + taskId);
+                    if (response.data.is_correct) {
+                        icon.className = 'fa-solid fa-check text-green-500 text-lg';  // Correct answer
+                    } else {
+                        icon.className = 'fa-regular fa-circle-xmark text-red-500 text-lg';  // Incorrect answer
+                    }
+                })
+                .catch(function (error) {
+                    console.error('Error checking answer:', error);
+                });
+
+        }
+
+
+        function showHint(taskId, hint) {
+            var hintElement = document.getElementById('hint_' + taskId);
+            hintElement.classList.toggle('hidden');
+        }
+
+        function explainAnswer(taskId, questionText) {
+            var encodedQuestionText = encodeURIComponent(questionText); // Encode to safely include in URL
+
+            axios.get('/explain/direct_to_indirect_speech/' + encodedQuestionText)
+                .then(function (response) {
+                    var explanationElement = document.getElementById('explanation_' + taskId);
+                    explanationElement.innerHTML = response.data.explanation; // Change to innerHTML to render HTML
+                    explanationElement.classList.remove('hidden'); // Make sure the explanation is visible
+                    console.log(response.data.explanation);
+                })
+                .catch(function (error) {
+                    console.error('Error fetching explanation:', error);
+                });
+        }
+
+
+
+
+
+    </script>
+</body>
+</html>
